@@ -1,0 +1,54 @@
+# ------------------ DỮ LIỆU VÍ DỤ ------------------
+database = {
+    'A': [
+        {'nganh': "Kỹ thuật phần mềm", 'truong': "ĐH Bách Khoa", 'diem_chuan': 27},
+        {'nganh': "Công nghệ thông tin", 'truong': "ĐH Công Nghệ (ĐHQG HN)", 'diem_chuan': 26},
+        {'nganh': "Tự động hóa", 'truong': "ĐH Bách Khoa", 'diem_chuan': 24},
+        {'nganh': "Kỹ thuật cơ điện tử", 'truong': "ĐH Sư phạm Kỹ thuật", 'diem_chuan': 22},
+        {'nganh': "Công nghệ kỹ thuật ô tô", 'truong': "ĐH Giao Thông Vận Tải", 'diem_chuan': 20},
+    ],
+
+    'B': [
+        {'nganh': "Y khoa", 'truong': "ĐH Y Hà Nội", 'diem_chuan': 28},
+        {'nganh': "Dược học", 'truong': "ĐH Dược", 'diem_chuan': 27},
+        {'nganh': "Công nghệ sinh học", 'truong': "ĐH Khoa học TN", 'diem_chuan': 23},
+        {'nganh': "Thú y", 'truong': "Học viện Nông Nghiệp", 'diem_chuan': 21},
+        {'nganh': "Chăn nuôi", 'truong': "ĐH Nông Lâm", 'diem_chuan': 18},
+    ],
+
+    'D': [
+        {'nganh': "Kinh tế quốc tế", 'truong': "ĐH Ngoại Thương", 'diem_chuan': 27},
+        {'nganh': "Ngôn ngữ Anh", 'truong': "ĐH Hà Nội", 'diem_chuan': 24},
+        {'nganh': "Quản trị kinh doanh", 'truong': "ĐH Thương Mại", 'diem_chuan': 23},
+        {'nganh': "Marketing", 'truong': "ĐH Kinh tế Quốc dân", 'diem_chuan': 25},
+        {'nganh': "Du lịch", 'truong': "ĐH Văn Lang", 'diem_chuan': 20},
+    ]
+}
+
+def goi_y_nganh(diem, khoi):
+    khoi = khoi.upper()
+    if khoi not in database:
+        print("Khối chưa được hỗ trợ.")
+        return
+
+    danh_sach = database[khoi]
+    print(f"\n📌 Gợi ý ngành phù hợp cho khối {khoi} và điểm {diem}:")
+    found = False
+    for item in danh_sach:
+        if diem >= item['diem_chuan']:
+            found = True
+            print(f"- {item['nganh']} | {item['truong']} (điểm chuẩn: {item['diem_chuan']})")
+    if not found:
+        print("❗Điểm của bạn hơi thấp so với các ngành trong danh sách, hãy cân nhắc trường top thấp hơn hoặc trường ngoài công lập.")
+
+
+if __name__ == "__main__":
+    try:
+        diem = float(input("Nhập điểm thi đại học của bạn: "))
+        if diem > 30 or diem < 0:
+            raise ValueError("Điểm không hợp lệ. Điểm phải từ 0 đến 31.")
+        khoi = input("Nhập khối thi (ví dụ: A, B, D): ")
+        goi_y_nganh(diem, khoi)
+
+    except ValueError as e:
+        print("Lỗi:", e)
