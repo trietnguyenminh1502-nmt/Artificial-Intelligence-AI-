@@ -1,4 +1,4 @@
-# ------------------ DỮ LIỆU VÍ DỤ ------------------
+
 database = {
     'A': [
         {'nganh': "Kỹ thuật phần mềm", 'truong': "ĐH Bách Khoa", 'diem_chuan': 27},
@@ -32,21 +32,21 @@ def goi_y_nganh(diem, khoi):
         return
 
     danh_sach = database[khoi]
-    print(f"\n📌 Gợi ý ngành phù hợp cho khối {khoi} và điểm {diem}:")
+    print(f"\nGợi ý ngành phù hợp cho khối {khoi} và điểm {diem}:")
     found = False
-    for item in danh_sach:
-        if diem >= item['diem_chuan']:
+    for i in danh_sach:
+        if diem >= i['diem_chuan']:
             found = True
-            print(f"- {item['nganh']} | {item['truong']} (điểm chuẩn: {item['diem_chuan']})")
+            print(f"- {i['nganh']} | {i['truong']} (điểm chuẩn: {i['diem_chuan']})")
     if not found:
-        print("❗Điểm của bạn hơi thấp so với các ngành trong danh sách, hãy cân nhắc trường top thấp hơn hoặc trường ngoài công lập.")
+        print("Điểm của bạn hơi thấp so với các ngành trong danh sách, hãy cân nhắc trường top thấp hơn hoặc trường ngoài công lập!!!")
 
 
 if __name__ == "__main__":
     try:
         diem = float(input("Nhập điểm thi đại học của bạn: "))
         if diem > 30 or diem < 0:
-            raise ValueError("Điểm không hợp lệ. Điểm phải từ 0 đến 31.")
+            raise ValueError("Điểm không hợp lệ. Điểm phải từ 0 đến 31!!!")
         khoi = input("Nhập khối thi (ví dụ: A, B, D): ")
         goi_y_nganh(diem, khoi)
 
