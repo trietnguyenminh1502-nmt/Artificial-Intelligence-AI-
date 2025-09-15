@@ -1,92 +1,183 @@
 import tkinter as tk
-N = 8  # số quân xe
-#hàm dfs
-def dfs(row, cols, solution, solutions):
-    if row == N:
-        solutions.append(solution[:])
+from collections import deque
+
+# -----------------------
+# Thuật toán
+# -----------------------
+def bfs_n_rooks_all(n=8):
+    queue = deque([[]])
+    while queue:
+        state = queue.popleft()
+        if len(state) == n:
+            yield state
+        else:
+            for col in range(n):
+                if col not in state:
+                    queue.append(state + [col])
+
+def bfs_n_rooks_steps(n=8):
+    queue = deque([[]])
+    while queue:
+        state = queue.popleft()
+        if state:
+            yield state
+        if len(state) == n:
+            continue
+        for col in range(n):
+            if col not in state:
+                queue.append(state + [col])
+
+def dfs_n_rooks_all(n=8):
+    stack = [[]]
+    while stack:
+        state = stack.pop()
+        if len(state) == n:
+            yield state
+        else:
+            for col in range(n-1, -1, -1):
+                if col not in state:
+                    stack.append(state + [col])
+
+def dfs_n_rooks_steps(n=8):
+    stack = [[]]
+    while stack:
+        state = stack.pop()
+        if state:
+            yield state
+        if len(state) == n:
+            continue
+        for col in range(n-1, -1, -1):
+            if col not in state:
+                stack.append(state + [col])
+
+# -----------------------
+# Vẽ bàn cờ
+# -----------------------
+def draw_board(canvas, solution=None):
+    canvas.delete("all")
+    n = 8
+    cell_size = 50
+    for r in range(n):
+        for c in range(n):
+            x1 = c * cell_size
+            y1 = r * cell_size
+            x2 = x1 + cell_size
+            y2 = y1 + cell_size
+            color = "white" if (r + c) % 2 == 0 else "gray"
+            canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="black")
+    if solution:
+        for r, c in enumerate(solution):
+            x = c * cell_size + cell_size // 2
+            y = r * cell_size + cell_size // 2
+            canvas.create_text(x, y, text="♖", font=("Arial", 28), fill="black")
+
+# -----------------------
+# Step-by-step
+# -----------------------
+def run_step_by_step():
+    global algo_gen, running
+    if not running:
+        return
+    try:
+        state = next(algo_gen)
+        draw_board(canvas_right, state)
+        delay = int(speed_var.get())
+        root.after(delay, run_step_by_step)
+    except StopIteration:
+        running = False
         return
 
-    for col in range(N):
-        if col not in cols:
-            solution.append((row, col))
-            dfs(row + 1, cols | {col}, solution, solutions)
-            solution.pop()
+def start_algorithm():
+    global algo_gen, solutions, current_index, running
+    algo = selected_algo.get()
+    n = 8
+    running = True
+    current_index = 0
 
-def solve_rooks():
-    solutions = []
-    dfs(0, set(), [], solutions)
-    return solutions
+    if algo == "BFS":
+        algo_gen = bfs_n_rooks_steps(n)
+        solutions = list(bfs_n_rooks_all(n))
+    elif algo == "DFS":
+        algo_gen = dfs_n_rooks_steps(n)
+        solutions = list(dfs_n_rooks_all(n))
+    else:
+        algo_gen = iter([])
+        solutions = []
 
-# tính chi phí:
-#- Nếu đặt xe vào (row, col), số cột trống cho các hàng còn lại giảm đi.
-#- Càng hạn chế → chi phí càng cao.
-def cost(row, col, remaining_rows, used_cols):
-    total_free = 0
-    for r in remaining_rows:
-        for c in range(N):
-            if c not in used_cols and c != col:
-                total_free += 1
+    if not hasattr(algo_gen, "__next__"):
+        algo_gen = iter(algo_gen)
 
-    reduced_free = total_free - len(remaining_rows)
-    return max(1, (N*N - reduced_free) // 10)
+    run_step_by_step()
 
-#Hàm giao diện
-class RookGUI:
-    def __init__(self, root, solutions):
-        self.root = root
-        self.root.title("Bài toán 8 quân xe - DFS + Cost")
-        self.solutions = solutions
-        self.index = 0
+def stop_algorithm():
+    global running
+    running = False
 
-        self.canvas = tk.Canvas(root, width=400, height=400)
-        self.canvas.pack()
+def reset_board():
+    global current_index, running
+    running = False
+    current_index = 0
+    draw_board(canvas_right)
 
-        self.btn_next = tk.Button(root, text="Next Solution", command=self.show_next)
-        self.btn_next.pack(pady=10)
+def next_solution():
+    global current_index, solutions, running
+    running = False
+    if not solutions:
+        return
+    current_index = (current_index + 1) % len(solutions)
+    draw_board(canvas_right, solutions[current_index])
 
-        self.label_cost = tk.Label(root, text="Tổng chi phí: 0", font=("Arial", 12))
-        self.label_cost.pack()
+# -----------------------
+# UI
+# -----------------------
+root = tk.Tk()
+root.title("8 Quân Xe")
 
-        self.draw_board()
-        self.show_next()
+# Canvas
+canvas_left = tk.Canvas(root, width=400, height=400)
+canvas_left.grid(row=0, column=0, padx=10, pady=10)
+draw_board(canvas_left)
 
-    def draw_board(self):
-        self.canvas.delete("all")
-        cell_size = 50
-        for i in range(N):
-            for j in range(N):
-                color = "white" if (i + j) % 2 == 0 else "gray"
-                self.canvas.create_rectangle(j*cell_size, i*cell_size,
-                                             (j+1)*cell_size, (i+1)*cell_size,
-                                             fill=color)
+canvas_right = tk.Canvas(root, width=400, height=400)
+canvas_right.grid(row=0, column=2, padx=10, pady=10)
+draw_board(canvas_right)
 
-    def show_next(self):
-        if self.index >= len(self.solutions):
-            self.index = 0
-        solution = self.solutions[self.index]
-        self.index += 1
+# Nhóm thuật toán ở giữa 2 bàn cờ
+frame_algo = tk.LabelFrame(root, text="Thuật toán", padx=10, pady=10)
+frame_algo.grid(row=0, column=1)
 
-        self.draw_board()
-        cell_size = 50
-        total_cost = 0
+selected_algo = tk.StringVar(value="BFS")
+tk.Radiobutton(frame_algo, text="BFS", variable=selected_algo, value="BFS").pack(anchor="w")
+tk.Radiobutton(frame_algo, text="DFS", variable=selected_algo, value="DFS").pack(anchor="w")
 
-        for k, (row, col) in enumerate(solution):
-            # vẽ quân xe
-            self.canvas.create_text(col*cell_size+25, row*cell_size+25,
-                                    text="♖", font=("Arial", 24), fill="red")
+# Nhóm điều khiển ở dưới
+frame_action = tk.Frame(root, pady=10)
+frame_action.grid(row=1, column=0, columnspan=3)
 
-            # tính chi phí
-            remaining_rows = list(range(row+1, N))
-            used_cols = {c for _, c in solution[:k]}
-            total_cost += cost(row, col, remaining_rows, used_cols)
+btn_font = ("Arial", 12, "bold")
+btn_start = tk.Button(frame_action, text="Bắt đầu", command=start_algorithm, font=btn_font, width=10)
+btn_start.pack(side="left", padx=6, pady=6)
+btn_stop = tk.Button(frame_action, text="Stop", command=stop_algorithm, font=btn_font, width=10)
+btn_stop.pack(side="left", padx=6, pady=6)
+btn_reset = tk.Button(frame_action, text="Reset", command=reset_board, font=btn_font, width=10)
+btn_reset.pack(side="left", padx=6, pady=6)
+btn_next = tk.Button(frame_action, text="Phương án tiếp theo", command=next_solution, font=btn_font, width=18)
+btn_next.pack(side="left", padx=6, pady=6)
 
-        self.label_cost.config(text=f"Tổng chi phí: {total_cost}")
+# Spinbox cho tốc độ
+frame_spin = tk.Frame(root, pady=10)
+frame_spin.grid(row=2, column=0, columnspan=3)
 
-#hàm chính
-if __name__ == "__main__":
-    solutions = solve_rooks()
-    print(f"Tìm được {len(solutions)} lời giải cho bài toán 8 quân xe.")
+tk.Label(frame_spin, text="Tốc độ (ms):").pack(side="left", padx=4)
+speed_var = tk.Spinbox(frame_spin, from_=10, to=2000, increment=10, width=6)
+speed_var.pack(side="left", padx=4)
+speed_var.delete(0, "end")
+speed_var.insert(0, "200")
 
-    root = tk.Tk()
-    gui = RookGUI(root, solutions)
-    root.mainloop()
+# State
+algo_gen = iter([])
+solutions = []
+current_index = 0
+running = False
+
+root.mainloop()
